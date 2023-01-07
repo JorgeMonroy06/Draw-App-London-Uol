@@ -15,6 +15,7 @@ Before you get started altering the application, read through the various files 
 
 For tools to work, they have to have: a property called 'icon', which is an URI for an image for the tool icon; a property called 'name', which is a string name for the tool; and a draw function.
 
+
 ## Task 1: Comment the lineToTool.js
 Comment the file so that another programmer can understand what it does and how it works. You might not have seen loadPixel and updatePixel functions before. Check them out in the p5 documentation and see what they do. Try commenting them out and seeing how it affects the running of the program (remember to uncomment the two lines again before submitting your code).
 
