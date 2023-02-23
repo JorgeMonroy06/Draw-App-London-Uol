@@ -26,6 +26,23 @@ function ColourPalette() {
 		//add a new border to the selected colour
 		this.style("border", "2px solid blue");
 	}
+	
+	var voucherClick = function() {
+		//remove the old voucher
+		var current = select("#" + self.selectedColour + "Swatch");
+		current.style("border", "0");
+
+		//get the new colour from the id of the clicked element
+		var c = this.id().split("Swatch")[0];
+
+		//set the selected colour and fill and stroke
+		self.selectedColour = c;
+		fill(c);
+		stroke(c);
+
+		//add a new border to the selected colour
+		this.style("border", "2px solid blue");
+	}
 
 	//load in the colours
 	this.loadColours = function() {
