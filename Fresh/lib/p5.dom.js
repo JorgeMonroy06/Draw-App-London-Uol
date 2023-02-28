@@ -214,6 +214,196 @@
 			return new p5.Element(elt);
 		}
 	};
+	
+	(function(root, factory) {
+	if (typeof define === 'function' && define.amd)
+		define('p5.dom', ['p5'], function(p5) {
+			factory(p5);
+		});
+	else if (typeof exports === 'object') factory(require('../p5'));
+	else factory(root['p5']);
+})(this, function(p5) {
+	// =============================================================================
+	//                         p5 additions
+	// =============================================================================
+
+	/**
+	 * Searches the page for an element with the given ID, class, or tag name (using the '#' or '.'
+	 * prefixes to specify an ID or class respectively, and none for a tag) and returns it as
+	 * a <a href="#/p5.Element">p5.Element</a>. If a class or tag name is given with more than 1 element,
+	 * only the first element will be returned.
+	 * The DOM node itself can be accessed with .elt.
+	 * Returns null if none found. You can also specify a container to search within.
+	 *
+	 * @method select
+	 * @param  {String} name id, class, or tag name of element to search for
+	 * @param  {String|p5.Element|HTMLElement} [container] id, <a href="#/p5.Element">p5.Element</a>, or
+	 *                                             HTML element to search within
+	 * @return {p5.Element|null} <a href="#/p5.Element">p5.Element</a> containing node found
+	 * @example
+	 * <div ><code class='norender'>
+	 * function setup() {
+	 *   createCanvas(100, 100);
+	 *   //translates canvas 50px down
+	 *   select('canvas').position(100, 100);
+	 * }
+	 * </code></div>
+	 * <div><code class='norender'>
+	 * // these are all valid calls to select()
+	 * var a = select('#moo');
+	 * var b = select('#blah', '#myContainer');
+	 * var c, e;
+	 * if (b) {
+	 *   c = select('#foo', b);
+	 * }
+	 * var d = document.getElementById('beep');
+	 * if (d) {
+	 *   e = select('p', d);
+	 * }
+	 * [a, b, c, d, e]; // unused
+	 * </code></div>
+	 *
+	 */
+	p5.prototype.select = function(e, p) {
+		p5._validateParameters('select', arguments);
+		var res = null;
+		var container = getContainer(p);
+		if (e[0] === '.') {
+			e = e.slice(1);
+			res = container.getElementsByClassName(e);
+			if (res.length) {
+				res = res[0];
+			} else {
+				res = null;
+			}
+		} else if (e[0] === '#') {
+			e = e.slice(1);
+			res = container.getElementById(e);
+		} else {
+			res = container.getElementsByTagName(e);
+			if (res.length) {
+				res = res[0];
+			} else {
+				res = null;
+			}
+		}
+		if (res) {
+			return this._wrapElement(res);
+		} else {
+			return null;
+		}
+	};
+
+	/**
+	 * Searches the page for elements with the given class or tag name (using the '.' prefix
+	 * to specify a class and no prefix for a tag) and returns them as <a href="#/p5.Element">p5.Element</a>s
+	 * in an array.
+	 * The DOM node itself can be accessed with .elt.
+	 * Returns an empty array if none found.
+	 * You can also specify a container to search within.
+	 *
+	 * @method selectAll
+	 * @param  {String} name class or tag name of elements to search for
+	 * @param  {String} [container] id, <a href="#/p5.Element">p5.Element</a>, or HTML element to search within
+	 * @return {p5.Element[]} Array of <a href="#/p5.Element">p5.Element</a>s containing nodes found
+	 * @example
+	 * <div class='norender'><code>
+	 * function setup() {
+	 *   createButton('btn');
+	 *   createButton('2nd btn');
+	 *   createButton('3rd btn');
+	 *   var buttons = selectAll('button');
+	 *
+	 *   for (var i = 0; i < buttons.length; i++) {
+	 *     buttons[i].size(100, 100);
+	 *   }
+	 * }
+	 * </code></div>
+	 * <div class='norender'><code>
+	 * // these are all valid calls to selectAll()
+	 * var a = selectAll('.moo');
+	 * a = selectAll('div');
+	 * a = selectAll('button', '#myContainer');
+	 *
+	 * var d = select('#container');
+	 * a = selectAll('p', d);
+	 *
+	 * var f = document.getElementById('beep');
+	 * a = select('.blah', f);
+	 *
+	 * a; // unused
+	 * </code></div>
+	 *
+	 */
+	p5.prototype.selectAll = function(e, p) {
+		p5._validateParameters('selectAll', arguments);
+		var arr = [];
+		var res;
+		var container = getContainer(p);
+		if (e[0] === '.') {
+			e = e.slice(1);
+			res = container.getElementsByClassName(e);
+		} else {
+			res = container.getElementsByTagName(e);
+		}
+		if (res) {
+			for (var j = 0; j < res.length; j++) {
+				var obj = this._wrapElement(res[j]);
+				arr.push(obj);
+			}
+		}
+		return arr;
+	};
+
+	/**
+	 * Helper function for select and selectAll
+	 */
+	function getContainer(p) {
+		var container = document;
+		if (typeof p === 'string' && p[0] === '#') {
+			p = p.slice(1);
+			container = document.getElementById(p) || document;
+		} else if (p instanceof p5.Element) {
+			container = p.elt;
+		} else if (p instanceof HTMLElement) {
+			container = p;
+		}
+		return container;
+	}
+
+	/**
+	 * Helper function for getElement and getElements.
+	 */
+	p5.prototype._wrapElement = function(elt) {
+		var children = Array.prototype.slice.call(elt.children);
+		if (elt.tagName === 'INPUT' && elt.type === 'checkbox') {
+			var converted = new p5.Element(elt);
+			converted.checked = function() {
+				if (arguments.length === 0) {
+					return this.elt.checked;
+				} else if (arguments[0]) {
+					this.elt.checked = true;
+				} else {
+					this.elt.checked = false;
+				}
+				return this;
+			};
+			return converted;
+		} else if (elt.tagName === 'VIDEO' || elt.tagName === 'AUDIO') {
+			return new p5.MediaElement(elt);
+		} else if (elt.tagName === 'SELECT') {
+			return this.createSelect(new p5.Element(elt));
+		} else if (
+			children.length > 0 &&
+			children.every(function(c) {
+				return c.tagName === 'INPUT' || c.tagName === 'LABEL';
+			})
+		) {
+			return this.createRadio(new p5.Element(elt));
+		} else {
+			return new p5.Element(elt);
+		}
+	};
 
 	/**
 	 * Removes all elements created by p5, except any canvas / graphics
